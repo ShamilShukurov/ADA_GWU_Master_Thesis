@@ -6,7 +6,7 @@ from imblearn.under_sampling import RandomUnderSampler
 from imblearn.over_sampling import SMOTE
 from imblearn.over_sampling import ADASYN
 from imblearn.under_sampling import TomekLinks
-
+from imblearn.combine import SMOTETomek
 
 class Balancer(ABC):
   """Wrapper class for Data Balancing algorithms."""
@@ -119,6 +119,26 @@ class TomekLinksBalancer(Balancer):
 
     def balance_data(self, x_train: pd.DataFrame, y_train: pd.Series) -> pd.DataFrame:
         X_resampled, y_resampled = self.tomek.fit_resample(x_train, y_train)
+        # Concatenating the resampled features and target into a single DataFrame
+        balanced_data = pd.concat([pd.DataFrame(X_resampled, columns=x_train.columns), pd.Series(y_resampled, name=y_train.name)], axis=1)
+        
+        return balanced_data
+
+    @property
+    def name(self) -> str:
+        """Returns the name of the algorithm."""
+        return self._name
+    
+
+class SMOTETomekBalancer(Balancer):
+    """SMOTE-TOMEK implementation of the Balancer abstract class."""
+
+    def __init__(self, sampling_strategy='auto', random_state=42):
+        self.smote_tomek = SMOTETomek(sampling_strategy=sampling_strategy, random_state=random_state)
+        self._name = "SMOTETomek"
+
+    def balance_data(self, x_train: pd.DataFrame, y_train: pd.Series) -> pd.DataFrame:
+        X_resampled, y_resampled = self.smote_tomek.fit_resample(x_train, y_train)
         # Concatenating the resampled features and target into a single DataFrame
         balanced_data = pd.concat([pd.DataFrame(X_resampled, columns=x_train.columns), pd.Series(y_resampled, name=y_train.name)], axis=1)
         
