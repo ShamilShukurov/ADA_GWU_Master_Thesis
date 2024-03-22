@@ -8,7 +8,7 @@ from imblearn.over_sampling import ADASYN
 from imblearn.under_sampling import TomekLinks
 from imblearn.combine import SMOTETomek
 from sklearn.neighbors import LocalOutlierFactor
-
+from sklearn.ensemble import IsolationForest
 
 class Balancer(ABC):
   """Wrapper class for Data Balancing algorithms."""
@@ -173,8 +173,42 @@ class LOFEnhance(Balancer):
         # Add LOF scores and outlier indicators to the dataset
         enhanced_data = x_train.copy()
         enhanced_data['LOF_Score'] = normalized_scores
-        enhanced_data['Is_Outlier'] = is_outlier
+        enhanced_data['Is_Outlier_LOF'] = is_outlier
         enhanced_data[y_train.name] = y_train
+        return enhanced_data
+
+    @property
+    def name(self) -> str:
+        """Returns the name of the algorithm."""
+        return self._name
+    
+class IsolationForestEnhance(Balancer):
+    """Isolation Forest Balancer implementation of the Balancer abstract class."""
+    
+    def __init__(self, n_estimators=100, contamination='auto', random_state=42):
+        self.isoforest = IsolationForest(n_estimators=n_estimators, contamination=contamination, random_state=random_state)
+        self._name = "IsolationForest"
+
+    def balance_data(self, x_train: pd.DataFrame, y_train: np.array = None) -> pd.DataFrame:
+
+        # Fit the Isolation Forest model to the data
+        self.isoforest.fit(x_train)
+        # Predict the outlier status (-1 for outliers, 1 for inliers)
+        outlier_predictions = self.isoforest.predict(x_train)
+        # Compute anomaly scores (lower scores indicate more outlier-like)
+        anomaly_scores = self.isoforest.decision_function(x_train)
+        
+        # Transform predictions to match our desired format: 1 for outliers, 0 for inliers
+        is_outlier = np.where(outlier_predictions == -1, 1, 0)
+        # Normalize anomaly scores to be positive (higher means more outlier-like)
+        normalized_scores = -anomaly_scores
+        
+        # Add anomaly scores and outlier indicators to the dataset
+        enhanced_data = x_train.copy()
+        enhanced_data['IsoForest_Score'] = normalized_scores
+        enhanced_data['Is_Outlier_IF'] = is_outlier
+        enhanced_data[y_train.name] = y_train
+        
         return enhanced_data
 
     @property
