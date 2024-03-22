@@ -19,6 +19,10 @@ class BaseLearningAlgorithm(ABC):
   def predict(self, x_test: pd.DataFrame) -> np.array:
     """Predicts on an unlabeled sample, X."""
 
+  @abstractmethod
+  def predict_proba(self, x_test: pd.DataFrame) -> np.array:
+    """Predicts probabilities on an unlabeled sample, X."""
+
   # @abstractmethod
   def train_eval(self, x_train:pd.DataFrame, y_train: np.array
                  , x_test:pd.DataFrame , y_test:np.array 
@@ -34,10 +38,10 @@ class BaseLearningAlgorithm(ABC):
     self.fit(x_train, y_train, x_val, y_val)
 
     predictions_test = self.predict(x_test)
-    probabilities_test = self.model.predict_proba(x_test)[:, 1]
+    probabilities_test = self.predict_proba(x_test)[:, 1]
 
     predictions_train = self.predict(x_train)
-    probabilities_train = self.model.predict_proba(x_train)[:, 1]
+    probabilities_train = self.predict_proba(x_train)[:, 1]
 
     # Evaluation metrics for test data
     f1_test = f1_score(y_test, predictions_test, zero_division=0)

@@ -8,9 +8,10 @@ from imblearn.ensemble import BalancedBaggingClassifier
 from imblearn.pipeline import make_pipeline
 from imblearn.over_sampling import SMOTE
 from sklearn.tree import DecisionTreeClassifier
-from ramo import *
-from smote import *
-from rus import *
+from ramo import RAMOBoost
+from smote import SMOTEBoost
+from rus import RUSBoost
+from sklearn.ensemble import IsolationForest
 from sklearn.metrics import f1_score, precision_score, accuracy_score, recall_score, roc_auc_score, roc_curve, auc
 import matplotlib.pyplot as plt
 from abc import ABC, abstractmethod
@@ -39,6 +40,9 @@ class SVMClassifier(BaseLearningAlgorithm):
         """Predict using the fitted SVM model."""
         return self.model.predict(x_test)
 
+    def predict_proba(self, x_test: pd.DataFrame) -> np.array:
+        return self.model.predict_proba(x_test)
+    
     @property
     def name(self) -> str:
         """Return the name of the algorithm."""
@@ -77,7 +81,9 @@ class XGBoostClassifier(BaseLearningAlgorithm):
         """Predict using the fitted XGBoost model."""
         return self.model.predict(x_test)
 
-
+    def predict_proba(self, x_test: pd.DataFrame) -> np.array:
+        return self.model.predict_proba(x_test)
+    
     @property
     def name(self) -> str:
         """Return the name of the algorithm."""
@@ -107,6 +113,8 @@ class LogisticRegressionClassifier(BaseLearningAlgorithm):
         """Predict using the fitted Logistic Regression model."""
         return self.model.predict(x_test)
 
+    def predict_proba(self, x_test: pd.DataFrame) -> np.array:
+        return self.model.predict_proba(x_test)
 
     @property
     def name(self) -> str:
@@ -131,6 +139,8 @@ class EasyEnsemble(BaseLearningAlgorithm):
         """Predict using the fitted Easy Ensemble model."""
         return self.model.predict(x_test)
 
+    def predict_proba(self, x_test: pd.DataFrame) -> np.array:
+        return self.model.predict_proba(x_test)
 
     @property
     def name(self) -> str:
@@ -156,6 +166,8 @@ class BalancedBagging(BaseLearningAlgorithm):
         """Predict using the fitted Balanced Bagging model."""
         return self.model.predict(x_test)
 
+    def predict_proba(self, x_test: pd.DataFrame) -> np.array:
+        return self.model.predict_proba(x_test)
 
     @property
     def name(self) -> str:
@@ -194,6 +206,8 @@ class RAMOBoostClassifier(BaseLearningAlgorithm):
     def predict(self, x_test: pd.DataFrame) -> np.array:
         return self.model.predict(x_test)
 
+    def predict_proba(self, x_test: pd.DataFrame) -> np.array:
+        return self.model.predict_proba(x_test)
 
     @property
     def name(self) -> str:
@@ -210,10 +224,13 @@ class SMOTEBoostClassifier(BaseLearningAlgorithm):
     def fit(self, x_train: pd.DataFrame, y_train: np.array, x_val: pd.DataFrame = None, y_val: np.array = None) -> None:
         self.model.fit(x_train, y_train)
 
+
     def predict(self, x_test: pd.DataFrame) -> np.array:
         return self.model.predict(x_test)
 
-
+    def predict_proba(self, x_test: pd.DataFrame) -> np.array:
+        return self.model.predict_proba(x_test)
+    
     @property
     def name(self) -> str:
         """Return the name of the algorithm."""
@@ -232,6 +249,50 @@ class RUSBoostClassifier(BaseLearningAlgorithm):
     def predict(self, x_test: pd.DataFrame) -> np.array:
         return self.model.predict(x_test)
 
+    def predict_proba(self, x_test: pd.DataFrame) -> np.array:
+        return self.model.predict_proba(x_test)
+    
+    @property
+    def name(self) -> str:
+        """Return the name of the algorithm."""
+        return self.alg_name
+    
+
+class IsolationForestClassifier(BaseLearningAlgorithm):
+    """Isolation Forest Classifier implementation of the BaseLearningAlgorithm."""
+    
+    def __init__(self, n_estimators=100, contamination='auto', random_state=42):
+        self.model = IsolationForest(n_estimators=n_estimators, contamination=contamination, random_state=random_state)
+        self.alg_name = "IsolationForest"
+        self.n_estimators = n_estimators
+        self.contamination = contamination
+
+    def fit(self, x_train: pd.DataFrame, y_train: np.array, x_val: pd.DataFrame = None, y_val: np.array = None) -> None:
+        """Fit the Isolation Forest model to the training data."""
+        # Isolation Forest is designed for outlier detection, thus only X is used for fitting
+        self.model.fit(x_train)
+
+    def predict(self, x_test: pd.DataFrame) -> np.array:
+        """Predict using the fitted Isolation Forest model."""
+        # Isolation Forest predicts -1 for outliers and 1 for inliers. Here, we map these to a binary classification context.
+        predictions = self.model.predict(x_test)
+        # Map Isolation Forest's -1 (outlier) and 1 (inlier) to 0 and 1 respectively for compatibility with binary classification tasks
+        return np.where(predictions == 1, 0, 1)
+    
+    def decision_function(self, x_test: pd.DataFrame) -> np.array:
+        """Compute the anomaly score for each sample."""
+        return self.model.decision_function(x_test)
+
+    def predict_proba(self, x_test: pd.DataFrame) -> np.array:
+        """Predict probability-like outputs for the fitted IsolationForest model."""
+        # Get decision function scores
+        decision_scores = self.model.decision_function(x_test)
+        # Apply sigmoid function to transform scores into probability-like values
+        probability_like = 1 / (1 + np.exp(-decision_scores))
+        # Since we're dealing with a binary classification (inlier vs outlier), 
+        # we need probabilities for both classes. We can consider the probability of being an outlier
+        # as the transformed score, and the probability of being an inlier as 1 minus this value.
+        return np.vstack((probability_like,1 - probability_like)).T
 
     @property
     def name(self) -> str:
