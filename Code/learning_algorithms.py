@@ -8,6 +8,7 @@ from imblearn.ensemble import BalancedBaggingClassifier
 from imblearn.pipeline import make_pipeline
 from imblearn.over_sampling import SMOTE
 from sklearn.tree import DecisionTreeClassifier
+from ramo import *
 from sklearn.metrics import f1_score, precision_score, accuracy_score, recall_score, roc_auc_score, roc_curve, auc
 import matplotlib.pyplot as plt
 from abc import ABC, abstractmethod
@@ -35,60 +36,11 @@ class SVMClassifier(BaseLearningAlgorithm):
     def predict(self, x_test: pd.DataFrame) -> np.array:
         """Predict using the fitted SVM model."""
         return self.model.predict(x_test)
-    
-    # def train_eval(self, x_train: pd.DataFrame, y_train: np.array, x_test: pd.DataFrame, 
-    #                y_test: np.array, x_val: pd.DataFrame = None, y_val: np.array = None, 
-    #                save_model: bool = True) -> pd.DataFrame:
-    #     """Train and evaluate the SVM model on both training and test datasets."""
-    #     self.fit(x_train, y_train, x_val, y_val)
-
-    #     # Predictions and probabilities for test data
-    #     predictions_test = self.predict(x_test)
-    #     probabilities_test = self.model.predict_proba(x_test)[:, 1]
-
-    #     # Predictions and probabilities for train data
-    #     predictions_train = self.predict(x_train)
-    #     probabilities_train = self.model.predict_proba(x_train)[:, 1]
-
-    #     # Evaluation metrics for test data
-    #     f1_test = f1_score(y_test, predictions_test, zero_division=0)
-    #     accuracy_test = accuracy_score(y_test, predictions_test)
-    #     precision_test = precision_score(y_test, predictions_test, zero_division=0)
-    #     recall_test = recall_score(y_test, predictions_test, zero_division=0)
-    #     auc_score_test = roc_auc_score(y_test, probabilities_test)
-
-    #     # Evaluation metrics for train data
-    #     f1_train = f1_score(y_train, predictions_train, zero_division=0)
-    #     accuracy_train = accuracy_score(y_train, predictions_train)
-    #     precision_train = precision_score(y_train, predictions_train, zero_division=0)
-    #     recall_train = recall_score(y_train, predictions_train, zero_division=0)
-    #     auc_score_train = roc_auc_score(y_train, probabilities_train)
-
-    #     # Plot ROC curve for both test and train data
-    #     self.plot_roc_curve(y_test, probabilities_test, 'Test')
-    #     self.plot_roc_curve(y_train, probabilities_train, 'Train')
-
-    #     evaluation_report = pd.DataFrame({
-    #         'Model': [self.alg_name, self.alg_name],
-    #         'Dataset': ['Train', 'Test'],
-    #         'Accuracy': [accuracy_train, accuracy_test],
-    #         'F1 Score': [f1_train, f1_test],
-    #         'Precision': [precision_train, precision_test],
-    #         'Recall': [recall_train, recall_test],
-    #         'AUC Score': [auc_score_train, auc_score_test]
-    #     })
-
-    #     if save_model:
-    #         # Implement model saving logic here
-    #         pass
-
-    #     return evaluation_report
-
 
     @property
     def name(self) -> str:
         """Return the name of the algorithm."""
-        return f"{self.alg_name}_{self.kernel}_C{self.C}"
+        return self.alg_name#f"{self.alg_name}_{self.kernel}_C{self.C}"
     
 
 
@@ -123,51 +75,11 @@ class XGBoostClassifier(BaseLearningAlgorithm):
         """Predict using the fitted XGBoost model."""
         return self.model.predict(x_test)
 
-    # def train_eval(self, x_train: pd.DataFrame, y_train: np.array, x_test: pd.DataFrame, y_test: np.array, x_val: pd.DataFrame = None, y_val: np.array = None, save_model: bool = True) -> pd.DataFrame:
-    #     """Train and evaluate the XGBoost model on both training and test datasets."""
-    #     self.fit(x_train, y_train, x_val, y_val)
-
-    #     predictions_test = self.predict(x_test)
-    #     probabilities_test = self.model.predict_proba(x_test)[:, 1]
-
-    #     predictions_train = self.predict(x_train)
-    #     probabilities_train = self.model.predict_proba(x_train)[:, 1]
-
-    #     # Evaluation metrics for test data
-    #     f1_test = f1_score(y_test, predictions_test, zero_division=0)
-    #     accuracy_test = accuracy_score(y_test, predictions_test)
-    #     precision_test = precision_score(y_test, predictions_test, zero_division=0)
-    #     recall_test = recall_score(y_test, predictions_test, zero_division=0)
-    #     auc_score_test = roc_auc_score(y_test, probabilities_test)
-
-    #     # Evaluation metrics for train data
-    #     f1_train = f1_score(y_train, predictions_train, zero_division=0)
-    #     accuracy_train = accuracy_score(y_train, predictions_train)
-    #     precision_train = precision_score(y_train, predictions_train, zero_division=0)
-    #     recall_train = recall_score(y_train, predictions_train, zero_division=0)
-    #     auc_score_train = roc_auc_score(y_train, probabilities_train)
-
-    #     # Plot ROC curve for both test and train data
-    #     self.plot_roc_curve(y_test, probabilities_test, 'Test')
-    #     self.plot_roc_curve(y_train, probabilities_train, 'Train')
-
-    #     evaluation_report = pd.DataFrame({
-    #         'Model': [self.alg_name, self.alg_name],
-    #         'Dataset': ['Train', 'Test'],
-    #         'Accuracy': [accuracy_train, accuracy_test],
-    #         'F1 Score': [f1_train, f1_test],
-    #         'Precision': [precision_train, precision_test],
-    #         'Recall': [recall_train, recall_test],
-    #         'AUC Score': [auc_score_train, auc_score_test]
-    #     })
-
-    #     return evaluation_report
-
 
     @property
     def name(self) -> str:
         """Return the name of the algorithm."""
-        return f"{self.alg_name}_{self.booster}_depth{self.max_depth}_lr{self.learning_rate}_est{self.n_estimators}"
+        return self.alg_name#f"{self.alg_name}_{self.booster}_depth{self.max_depth}_lr{self.learning_rate}_est{self.n_estimators}"
     
 
 class LogisticRegressionClassifier(BaseLearningAlgorithm):
@@ -193,58 +105,11 @@ class LogisticRegressionClassifier(BaseLearningAlgorithm):
         """Predict using the fitted Logistic Regression model."""
         return self.model.predict(x_test)
 
-    # def train_eval(self, x_train: pd.DataFrame, y_train: np.array, 
-    #                x_test: pd.DataFrame, y_test: np.array, x_val: pd.DataFrame = None, 
-    #                y_val: np.array = None, save_model: bool = True) -> pd.DataFrame:
-    #     """Train and evaluate the Logistic Regression model."""
-    #     self.fit(x_train, y_train, x_val, y_val)
-
-    #     predictions_test = self.predict(x_test)
-    #     probabilities_test = self.model.predict_proba(x_test)[:, 1]
-
-    #     predictions_train = self.predict(x_train)
-    #     probabilities_train = self.model.predict_proba(x_train)[:, 1]
-
-    #     # Evaluation metrics for test data
-    #     f1_test = f1_score(y_test, predictions_test, zero_division=0)
-    #     accuracy_test = accuracy_score(y_test, predictions_test)
-    #     precision_test = precision_score(y_test, predictions_test, zero_division=0)
-    #     recall_test = recall_score(y_test, predictions_test, zero_division=0)
-    #     auc_score_test = roc_auc_score(y_test, probabilities_test)
-
-    #     # Evaluation metrics for train data
-    #     f1_train = f1_score(y_train, predictions_train, zero_division=0)
-    #     accuracy_train = accuracy_score(y_train, predictions_train)
-    #     precision_train = precision_score(y_train, predictions_train, zero_division=0)
-    #     recall_train = recall_score(y_train, predictions_train, zero_division=0)
-    #     auc_score_train = roc_auc_score(y_train, probabilities_train)
-
-    #     # Plot ROC curve for both test and train data
-    #     self.plot_roc_curve(y_test, probabilities_test, 'Test')
-    #     self.plot_roc_curve(y_train, probabilities_train, 'Train')
-
-    #     evaluation_report = pd.DataFrame({
-    #         'Model': [self.alg_name, self.alg_name],
-    #         'Dataset': ['Train', 'Test'],
-    #         'Accuracy': [accuracy_train, accuracy_test],
-    #         'F1 Score': [f1_train, f1_test],
-    #         'Precision': [precision_train, precision_test],
-    #         'Recall': [recall_train, recall_test],
-    #         'AUC Score': [auc_score_train, auc_score_test]
-    #     })
-
-    #     if save_model:
-    #         # Implement model saving logic here, possibly using joblib or pickle
-    #         pass
-
-
-    #     return evaluation_report
-
 
     @property
     def name(self) -> str:
         """Return the name of the algorithm."""
-        return f"{self.alg_name}_{self.penalty}_C{self.C}"
+        return self.alg_name#f"{self.alg_name}_{self.penalty}_C{self.C}"
 
 
 class EasyEnsemble(BaseLearningAlgorithm):
@@ -264,58 +129,11 @@ class EasyEnsemble(BaseLearningAlgorithm):
         """Predict using the fitted Easy Ensemble model."""
         return self.model.predict(x_test)
 
-    # def train_eval(self, x_train: pd.DataFrame, y_train: np.array, 
-    #                x_test: pd.DataFrame, y_test: np.array, 
-    #                x_val: pd.DataFrame = None, y_val: np.array = None, save_model: bool = True) -> pd.DataFrame:
-    #     """Train and evaluate the Easy Ensemble model."""
-    #     self.fit(x_train, y_train, x_val, y_val)
-
-    #     predictions_test = self.predict(x_test)
-    #     probabilities_test = self.model.predict_proba(x_test)[:, 1]  # Get probabilities for the positive class
-
-    #     predictions_train = self.predict(x_train)
-    #     probabilities_train = self.model.predict_proba(x_train)[:, 1]  # Get probabilities for the positive class
-
-    #     # Evaluation metrics for test data
-    #     f1_test = f1_score(y_test, predictions_test, zero_division=0)
-    #     accuracy_test = accuracy_score(y_test, predictions_test)
-    #     precision_test = precision_score(y_test, predictions_test, zero_division=0)
-    #     recall_test = recall_score(y_test, predictions_test, zero_division=0)
-    #     auc_score_test = roc_auc_score(y_test, probabilities_test)
-
-    #     # Evaluation metrics for train data
-    #     f1_train = f1_score(y_train, predictions_train, zero_division=0)
-    #     accuracy_train = accuracy_score(y_train, predictions_train)
-    #     precision_train = precision_score(y_train, predictions_train, zero_division=0)
-    #     recall_train = recall_score(y_train, predictions_train, zero_division=0)
-    #     auc_score_train = roc_auc_score(y_train, probabilities_train)
-
-
-    #     evaluation_report = pd.DataFrame({
-    #         'Model': [self.alg_name, self.alg_name],
-    #         'Dataset': ['Train', 'Test'],
-    #         'Accuracy': [accuracy_train, accuracy_test],
-    #         'F1 Score': [f1_train, f1_test],
-    #         'Precision': [precision_train, precision_test],
-    #         'Recall': [recall_train, recall_test],
-    #         'AUC Score': [auc_score_train, auc_score_test]
-    #     })
-
-    #     if save_model:
-    #         # Implement model saving logic here, e.g., using joblib or pickle
-    #         pass
-
-    #     # Plot ROC curve for both test and train data
-    #     self.plot_roc_curve(y_test, probabilities_test, 'Test')
-    #     self.plot_roc_curve(y_train, probabilities_train, 'Train')
-
-    #     return evaluation_report
-
 
     @property
     def name(self) -> str:
         """Return the name of the algorithm."""
-        return f"{self.alg_name}_n{self.n_estimators}"
+        return self.alg_name#f"{self.alg_name}_n{self.n_estimators}"
 
 
 class BalancedBagging(BaseLearningAlgorithm):
@@ -336,56 +154,11 @@ class BalancedBagging(BaseLearningAlgorithm):
         """Predict using the fitted Balanced Bagging model."""
         return self.model.predict(x_test)
 
-    # def train_eval(self, x_train: pd.DataFrame, y_train: np.array, 
-    #                x_test: pd.DataFrame, y_test: np.array, x_val: pd.DataFrame = None, 
-    #                y_val: np.array = None, save_model: bool = True) -> pd.DataFrame:
-    #     """Train and evaluate the Balanced Bagging model."""
-    #     self.fit(x_train, y_train, x_val, y_val)
-
-    #     predictions_test = self.predict(x_test)
-    #     probabilities_test = self.model.predict_proba(x_test)[:, 1]
-
-    #     predictions_train = self.predict(x_train)
-    #     probabilities_train = self.model.predict_proba(x_train)[:, 1]
-
-    #     # Evaluation metrics for test data
-    #     f1_test = f1_score(y_test, predictions_test, zero_division=0)
-    #     accuracy_test = accuracy_score(y_test, predictions_test)
-    #     precision_test = precision_score(y_test, predictions_test, zero_division=0)
-    #     recall_test = recall_score(y_test, predictions_test, zero_division=0)
-    #     auc_score_test = roc_auc_score(y_test, probabilities_test)
-
-    #     # Evaluation metrics for train data
-    #     f1_train = f1_score(y_train, predictions_train, zero_division=0)
-    #     accuracy_train = accuracy_score(y_train, predictions_train)
-    #     precision_train = precision_score(y_train, predictions_train, zero_division=0)
-    #     recall_train = recall_score(y_train, predictions_train, zero_division=0)
-    #     auc_score_train = roc_auc_score(y_train, probabilities_train)
-
-
-    #     evaluation_report = pd.DataFrame({
-    #         'Model': [self.alg_name, self.alg_name],
-    #         'Dataset': ['Train', 'Test'],
-    #         'Accuracy': [accuracy_train, accuracy_test],
-    #         'F1 Score': [f1_train, f1_test],
-    #         'Precision': [precision_train, precision_test],
-    #         'Recall': [recall_train, recall_test],
-    #         'AUC Score': [auc_score_train, auc_score_test]
-    #     })
-
-    #     if save_model:
-    #         # Implement model saving logic here, e.g., using joblib or pickle
-    #         pass
-
-    #     self.plot_roc_curve(y_test, probabilities_test, 'Test')
-    #     self.plot_roc_curve(y_train, probabilities_train, 'Train')
-
-    #     return evaluation_report
 
     @property
     def name(self) -> str:
         """Return the name of the algorithm."""
-        return f"{self.alg_name}_n{self.n_estimators}"
+        return self.alg_name#f"{self.alg_name}_n{self.n_estimators}"
     
 class SMOTEBaggingClassifier(BalancedBagging):
     """SMOTE-Bagging Classifier implementation."""
@@ -403,4 +176,26 @@ class SMOTEBaggingClassifier(BalancedBagging):
     @property
     def name(self) -> str:
         """Return the name of the algorithm."""
-        return f"{self.alg_name}_n{self.n_estimators}"
+        return self.alg_name#f"{self.alg_name}_n{self.n_estimators}"
+    
+
+class RAMOBoostClassifier(BaseLearningAlgorithm):
+    """RamoBoost implementation of the BaseLearningAlgorithm."""
+    
+    def __init__(self, alg_name='RAMOBoost'):
+        self.model = RAMOBoost()
+        self.alg_name = alg_name
+
+    def fit(self, x_train: pd.DataFrame, y_train: np.array, x_val: pd.DataFrame = None, y_val: np.array = None) -> None:
+        """Fit the Logistic Regression model to the training data."""
+        self.model.fit(x_train, y_train)
+
+    def predict(self, x_test: pd.DataFrame) -> np.array:
+        """Predict using the fitted Logistic Regression model."""
+        return self.model.predict(x_test)
+
+
+    @property
+    def name(self) -> str:
+        """Return the name of the algorithm."""
+        return self.alg_name

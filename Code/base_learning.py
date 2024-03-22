@@ -58,7 +58,7 @@ class BaseLearningAlgorithm(ABC):
     self.plot_roc_curve(y_train, probabilities_train, 'Train')
 
     evaluation_report = pd.DataFrame({
-        'Model': [self.alg_name, self.alg_name],
+        'Model': [self.name, self.name],
         'Dataset': ['Train', 'Test'],
         'Accuracy': [accuracy_train, accuracy_test],
         'F1 Score': [f1_train, f1_test],
