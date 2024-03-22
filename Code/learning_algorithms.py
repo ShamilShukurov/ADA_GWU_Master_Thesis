@@ -9,6 +9,7 @@ from imblearn.pipeline import make_pipeline
 from imblearn.over_sampling import SMOTE
 from sklearn.tree import DecisionTreeClassifier
 from ramo import *
+from smote import *
 from sklearn.metrics import f1_score, precision_score, accuracy_score, recall_score, roc_auc_score, roc_curve, auc
 import matplotlib.pyplot as plt
 from abc import ABC, abstractmethod
@@ -187,11 +188,28 @@ class RAMOBoostClassifier(BaseLearningAlgorithm):
         self.alg_name = alg_name
 
     def fit(self, x_train: pd.DataFrame, y_train: np.array, x_val: pd.DataFrame = None, y_val: np.array = None) -> None:
-        """Fit the Logistic Regression model to the training data."""
         self.model.fit(x_train, y_train)
 
     def predict(self, x_test: pd.DataFrame) -> np.array:
-        """Predict using the fitted Logistic Regression model."""
+        return self.model.predict(x_test)
+
+
+    @property
+    def name(self) -> str:
+        """Return the name of the algorithm."""
+        return self.alg_name
+    
+class SMOTEBoostClassifier(BaseLearningAlgorithm):
+    """SMOTEBoost implementation of the BaseLearningAlgorithm."""
+    
+    def __init__(self, alg_name='SMOTEBoost'):
+        self.model = SMOTEBoost()
+        self.alg_name = alg_name
+
+    def fit(self, x_train: pd.DataFrame, y_train: np.array, x_val: pd.DataFrame = None, y_val: np.array = None) -> None:
+        self.model.fit(x_train, y_train)
+
+    def predict(self, x_test: pd.DataFrame) -> np.array:
         return self.model.predict(x_test)
 
 
