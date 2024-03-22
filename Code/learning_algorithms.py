@@ -4,6 +4,8 @@ from sklearn.svm import SVC
 import xgboost as xgb
 from sklearn.linear_model import LogisticRegression
 from imblearn.ensemble import EasyEnsembleClassifier
+from imblearn.ensemble import BalancedBaggingClassifier
+#from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import f1_score, precision_score, accuracy_score, recall_score, roc_auc_score, roc_curve, auc
 import matplotlib.pyplot as plt
 from abc import ABC, abstractmethod
@@ -368,6 +370,76 @@ class EasyEnsemble(BaseLearningAlgorithm):
         plt.title(f'Receiver Operating Characteristic - {dataset_label}')
         plt.legend(loc="lower right")
         plt.show()
+
+    @property
+    def name(self) -> str:
+        """Return the name of the algorithm."""
+        return f"{self.alg_name}_n{self.n_estimators}"
+
+
+class BalancedBagging(BaseLearningAlgorithm):
+    """Balanced Bagging Classifier implementation of the BaseLearningAlgorithm."""
+    
+    def __init__(self, n_estimators=10, base_estimator=None, random_state=42, n_jobs=-1):
+        self.model = BalancedBaggingClassifier(n_estimators=n_estimators, 
+                                               estimator=base_estimator, 
+                                               random_state=random_state, n_jobs=n_jobs)
+        self.alg_name = "BalancedBagging"
+        self.n_estimators = n_estimators
+
+    def fit(self, x_train: pd.DataFrame, y_train: np.array, x_val: pd.DataFrame = None, y_val: np.array = None) -> None:
+        """Fit the Balanced Bagging model to the training data."""
+        self.model.fit(x_train, y_train)
+
+    def predict(self, x_test: pd.DataFrame) -> np.array:
+        """Predict using the fitted Balanced Bagging model."""
+        return self.model.predict(x_test)
+
+    def train_eval(self, x_train: pd.DataFrame, y_train: np.array, 
+                   x_test: pd.DataFrame, y_test: np.array, x_val: pd.DataFrame = None, 
+                   y_val: np.array = None, save_model: bool = True) -> pd.DataFrame:
+        """Train and evaluate the Balanced Bagging model."""
+        self.fit(x_train, y_train, x_val, y_val)
+
+        predictions_test = self.predict(x_test)
+        probabilities_test = self.model.predict_proba(x_test)[:, 1]
+
+        predictions_train = self.predict(x_train)
+        probabilities_train = self.model.predict_proba(x_train)[:, 1]
+
+        # Evaluation metrics for test data
+        f1_test = f1_score(y_test, predictions_test, zero_division=0)
+        accuracy_test = accuracy_score(y_test, predictions_test)
+        precision_test = precision_score(y_test, predictions_test, zero_division=0)
+        recall_test = recall_score(y_test, predictions_test, zero_division=0)
+        auc_score_test = roc_auc_score(y_test, probabilities_test)
+
+        # Evaluation metrics for train data
+        f1_train = f1_score(y_train, predictions_train, zero_division=0)
+        accuracy_train = accuracy_score(y_train, predictions_train)
+        precision_train = precision_score(y_train, predictions_train, zero_division=0)
+        recall_train = recall_score(y_train, predictions_train, zero_division=0)
+        auc_score_train = roc_auc_score(y_train, probabilities_train)
+
+
+        evaluation_report = pd.DataFrame({
+            'Model': [self.alg_name, self.alg_name],
+            'Dataset': ['Train', 'Test'],
+            'Accuracy': [accuracy_train, accuracy_test],
+            'F1 Score': [f1_train, f1_test],
+            'Precision': [precision_train, precision_test],
+            'Recall': [recall_train, recall_test],
+            'AUC Score': [auc_score_train, auc_score_test]
+        })
+
+        if save_model:
+            # Implement model saving logic here, e.g., using joblib or pickle
+            pass
+
+        self.plot_roc_curve(y_test, probabilities_test, 'Test')
+        self.plot_roc_curve(y_train, probabilities_train, 'Train')
+
+        return evaluation_report
 
     @property
     def name(self) -> str:
