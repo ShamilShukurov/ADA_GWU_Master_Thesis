@@ -7,6 +7,8 @@ from imblearn.over_sampling import SMOTE
 from imblearn.over_sampling import ADASYN
 from imblearn.under_sampling import TomekLinks
 from imblearn.combine import SMOTETomek
+from sklearn.neighbors import LocalOutlierFactor
+
 
 class Balancer(ABC):
   """Wrapper class for Data Balancing algorithms."""
@@ -143,6 +145,37 @@ class SMOTETomekBalancer(Balancer):
         balanced_data = pd.concat([pd.DataFrame(X_resampled, columns=x_train.columns), pd.Series(y_resampled, name=y_train.name)], axis=1)
         
         return balanced_data
+
+    @property
+    def name(self) -> str:
+        """Returns the name of the algorithm."""
+        return self._name
+    
+
+class LOFEnhance(Balancer):
+    """Local Outlier Factor Balancer implementation of the Balancer abstract class."""
+    
+    def __init__(self, n_neighbors=20, contamination='auto'):
+        self.lof = LocalOutlierFactor(n_neighbors=n_neighbors, contamination=contamination)
+        self._name = "LocalOutlierFactor"
+
+    def balance_data(self, x_train: pd.DataFrame, y_train: pd.Series) -> pd.DataFrame:
+        # Fit the LOF model to the data and predict the outlier status directly
+        outlier_predictions = self.lof.fit_predict(x_train)
+        # Transform predictions to match our desired format: 1 for outliers, 0 for inliers
+        is_outlier = np.where(outlier_predictions == -1, 1, 0)
+        
+        # Compute anomaly scores (the negative outlier factor)
+        lof_scores = self.lof.negative_outlier_factor_
+        # Invert scores to make them more intuitive (higher means more outlier-like)
+        normalized_scores = -lof_scores
+        
+        # Add LOF scores and outlier indicators to the dataset
+        enhanced_data = x_train.copy()
+        enhanced_data['LOF_Score'] = normalized_scores
+        enhanced_data['Is_Outlier'] = is_outlier
+        enhanced_data[y_train.name] = y_train
+        return enhanced_data
 
     @property
     def name(self) -> str:
