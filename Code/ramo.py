@@ -11,6 +11,7 @@ from sklearn.preprocessing import normalize
 from sklearn.tree import BaseDecisionTree
 from sklearn.utils import check_random_state
 from sklearn.utils import check_X_y
+from sklearn.utils import  check_array # added
 #from sklearn.utils import shuffle
 
 
@@ -217,6 +218,12 @@ class RAMOBoost(AdaBoostClassifier):
 
         self.n_samples = n_samples
         self.algorithm = algorithm
+        self.alpha = alpha #added
+        self.learning_rate = learning_rate #added
+        self.k_neighbors_1=k_neighbors_1 #added
+        self.k_neighbors_2=k_neighbors_2 #added
+        self.random_state = random_state #added
+        self.n_estimators = n_estimators #added
         self.ramo = RankedMinorityOversampler(
             k_neighbors_1, k_neighbors_2, alpha, random_state=random_state
         )
