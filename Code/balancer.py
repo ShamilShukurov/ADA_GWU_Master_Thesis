@@ -184,6 +184,10 @@ class LOFEnhance(Balancer):
         self._name = "LocalOutlierFactor"
 
     def balance_data(self, x_train: pd.DataFrame, y_train: pd.Series = None) -> pd.DataFrame:
+        """Note y_train can be None only for enhancers. 
+           That is because we apply enhancing on test set as well where we don't need y_test
+        """
+
         # Fit the LOF model to the data and predict the outlier status directly
         outlier_predictions = self.lof.fit_predict(x_train)
 
@@ -220,7 +224,9 @@ class IsolationForestEnhance(Balancer):
         self._name = "IsolationForest"
 
     def balance_data(self, x_train: pd.DataFrame, y_train: pd.Series = None) -> pd.DataFrame:
-
+        """Note y_train can be None only for enhancers. 
+           That is because we apply enhancing on test set as well where we don't need y_test
+        """
         # Fit the Isolation Forest model to the data
         self.isoforest.fit(x_train)
         # Predict the outlier status (-1 for outliers, 1 for inliers)
