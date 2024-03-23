@@ -5,12 +5,13 @@ import xgboost as xgb
 from sklearn.linear_model import LogisticRegression
 from imblearn.ensemble import EasyEnsembleClassifier
 from imblearn.ensemble import BalancedBaggingClassifier
+from imblearn.ensemble import RUSBoostClassifier
 from imblearn.pipeline import make_pipeline
 from imblearn.over_sampling import SMOTE
 from sklearn.tree import DecisionTreeClassifier
 from ramo import RAMOBoost
 from smote import SMOTEBoost
-from rus import RUSBoost
+# from rus import RUSBoost
 from sklearn.ensemble import IsolationForest
 from sklearn.metrics import f1_score, precision_score, accuracy_score, recall_score, roc_auc_score, roc_curve, auc
 import matplotlib.pyplot as plt
@@ -151,7 +152,8 @@ class EasyEnsemble(BaseLearningAlgorithm):
 class BalancedBagging(BaseLearningAlgorithm):
     """Balanced Bagging Classifier implementation of the BaseLearningAlgorithm."""
     
-    def __init__(self, n_estimators=10, base_estimator=None, random_state=42, n_jobs=-1):
+    def __init__(self, n_estimators=10, base_estimator=DecisionTreeClassifier(max_depth=3), 
+                 random_state=42, n_jobs=-1):
         self.model = BalancedBaggingClassifier(n_estimators=n_estimators, 
                                                estimator=base_estimator, 
                                                random_state=random_state, n_jobs=n_jobs)
@@ -177,7 +179,7 @@ class BalancedBagging(BaseLearningAlgorithm):
 class SMOTEBaggingClassifier(BalancedBagging):
     """SMOTE-Bagging Classifier implementation."""
 
-    def __init__(self, n_estimators=10, base_estimator=DecisionTreeClassifier(), random_state=42, n_jobs=-1):
+    def __init__(self, n_estimators=10, base_estimator=DecisionTreeClassifier(max_depth=3), random_state=42, n_jobs=-1):
         # Initialize SMOTE with custom parameters if provided
         smote = SMOTE(random_state=random_state)
         # Create a pipeline with SMOTE and the base estimator
@@ -236,11 +238,11 @@ class SMOTEBoostClassifier(BaseLearningAlgorithm):
         """Return the name of the algorithm."""
         return self.alg_name
     
-class RUSBoostClassifier(BaseLearningAlgorithm):
+class RUSBoost(BaseLearningAlgorithm):
     """SMOTEBoost implementation of the BaseLearningAlgorithm."""
     
     def __init__(self, alg_name='RUSBoost'):
-        self.model = RUSBoost()
+        self.model = RUSBoostClassifier()
         self.alg_name = alg_name
 
     def fit(self, x_train: pd.DataFrame, y_train: np.array, x_val: pd.DataFrame = None, y_val: np.array = None) -> None:
