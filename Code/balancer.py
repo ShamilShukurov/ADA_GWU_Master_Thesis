@@ -30,6 +30,10 @@ class Balancer(ABC):
   def name(self) -> str:
     """Returns the name of the algorithm."""
 
+  @property
+  @abstractmethod
+  def apply_to_test(self) -> bool:
+    """Whether this technique should be applied to test set or not"""
 
 
 class RandomOverSamplerBalancer(Balancer):
@@ -49,6 +53,10 @@ class RandomOverSamplerBalancer(Balancer):
     def name(self) -> str:
         """Returns the name of the algorithm."""
         return self._name
+    
+    @property
+    def apply_to_test(self) -> bool:
+        return False
     
 
 class RandomUnderSamplerBalancer(Balancer):
@@ -71,6 +79,9 @@ class RandomUnderSamplerBalancer(Balancer):
         """Returns the name of the algorithm."""
         return self._name
     
+    @property
+    def apply_to_test(self) -> bool:
+        return False    
 
 class SMOTEBalancer(Balancer):
     """SMOTE implementation of the Balancer abstract class."""
@@ -91,7 +102,10 @@ class SMOTEBalancer(Balancer):
     def name(self) -> str:
         """Returns the name of the algorithm."""
         return self._name
-
+    
+    @property
+    def apply_to_test(self) -> bool:
+        return False
 
 class ADASYNBalancer(Balancer):
     """ADASYN implementation of the Balancer abstract class."""
@@ -111,7 +125,11 @@ class ADASYNBalancer(Balancer):
     def name(self) -> str:
         """Returns the name of the algorithm."""
         return self._name
-    
+
+    @property
+    def apply_to_test(self) -> bool:
+        return False
+        
 class TomekLinksBalancer(Balancer):
     """Tomek Links implementation of the Balancer abstract class."""
 
@@ -130,7 +148,10 @@ class TomekLinksBalancer(Balancer):
     def name(self) -> str:
         """Returns the name of the algorithm."""
         return self._name
-    
+
+    @property
+    def apply_to_test(self) -> bool:
+        return False    
 
 class SMOTETomekBalancer(Balancer):
     """SMOTE-TOMEK implementation of the Balancer abstract class."""
@@ -150,7 +171,10 @@ class SMOTETomekBalancer(Balancer):
     def name(self) -> str:
         """Returns the name of the algorithm."""
         return self._name
-    
+
+    @property
+    def apply_to_test(self) -> bool:
+        return False    
 
 class LOFEnhance(Balancer):
     """Local Outlier Factor implementation of the Balancer abstract class."""
@@ -162,7 +186,7 @@ class LOFEnhance(Balancer):
     def balance_data(self, x_train: pd.DataFrame, y_train: pd.Series) -> pd.DataFrame:
         # Fit the LOF model to the data and predict the outlier status directly
         outlier_predictions = self.lof.fit_predict(x_train)
-        
+
         # Transform predictions to match our desired format: 1 for outliers, 0 for inliers
         is_outlier = np.where(outlier_predictions == -1, 1, 0)
         
@@ -182,6 +206,10 @@ class LOFEnhance(Balancer):
     def name(self) -> str:
         """Returns the name of the algorithm."""
         return self._name
+    
+    @property
+    def apply_to_test(self) -> bool:
+        return True
     
 class IsolationForestEnhance(Balancer):
     """Isolation Forest Balancer implementation of the Balancer abstract class."""
@@ -216,3 +244,7 @@ class IsolationForestEnhance(Balancer):
     def name(self) -> str:
         """Returns the name of the algorithm."""
         return self._name
+    
+    @property
+    def apply_to_test(self) -> bool:
+        return True
