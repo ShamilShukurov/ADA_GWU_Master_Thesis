@@ -32,8 +32,9 @@ class BaseLearningAlgorithm(ABC):
     """Trains the model and return model evaluation report based on train and test data.
         --save_model (bool): Flag to indicate whether to save the trained model.
     """
-
+    print("Traning the model...")
     self.fit(x_train, y_train, x_val, y_val)
+    print("Training Done.")
 
     predictions_test = self.predict(x_test)
     probabilities_test = self.predict_proba(x_test)[:, 1]
