@@ -93,7 +93,7 @@ class XGBoostClassifier(BaseLearningAlgorithm):
 class LogisticRegressionClassifier(BaseLearningAlgorithm):
     """Logistic Regression implementation of the BaseLearningAlgorithm."""
     
-    def __init__(self, alg_name='LogisticRegression', 
+    def __init__(self, alg_name='Logistic', 
                  penalty='l2', C=1.0, class_weight=None, solver='lbfgs', max_iter=100, verbose=0):
         self.model = LogisticRegression(penalty=penalty, C=C, class_weight=class_weight, 
                                         solver=solver, max_iter=max_iter, verbose=verbose)

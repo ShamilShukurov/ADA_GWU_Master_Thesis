@@ -41,7 +41,7 @@ class RandomOverSamplerBalancer(Balancer):
 
     def __init__(self):
         self.ros = RandomOverSampler(random_state=42)
-        self._name = "RandomOverSample"
+        self._name = "ROS"
 
     def balance_data(self, x_train: pd.DataFrame, y_train: pd.Series) -> pd.DataFrame:
 
@@ -64,7 +64,7 @@ class RandomUnderSamplerBalancer(Balancer):
 
     def __init__(self):
         self.rus = RandomUnderSampler(random_state=42)
-        self._name = "RandomUnderSample"
+        self._name = "RUS"
 
     def balance_data(self, x_train: pd.DataFrame, y_train: pd.Series) -> pd.DataFrame:
         X_resampled, y_resampled = self.rus.fit_resample(x_train, y_train)
@@ -135,7 +135,7 @@ class TomekLinksBalancer(Balancer):
 
     def __init__(self):
         self.tomek = TomekLinks()
-        self._name = "TomekLinks"
+        self._name = "Tomek"
 
     def balance_data(self, x_train: pd.DataFrame, y_train: pd.Series) -> pd.DataFrame:
         X_resampled, y_resampled = self.tomek.fit_resample(x_train, y_train)
@@ -181,7 +181,7 @@ class LOFEnhance(Balancer):
     
     def __init__(self, n_neighbors=20, contamination='auto'):
         self.lof = LocalOutlierFactor(n_neighbors=n_neighbors, contamination=contamination)
-        self._name = "LocalOutlierFactor"
+        self._name = "LOF"
 
     def balance_data(self, x_train: pd.DataFrame, y_train: pd.Series = None) -> pd.DataFrame:
         """Note y_train can be None only for enhancers. 
@@ -221,7 +221,7 @@ class IsolationForestEnhance(Balancer):
     
     def __init__(self, n_estimators=100, contamination='auto', random_state=42):
         self.isoforest = IsolationForest(n_estimators=n_estimators, contamination=contamination, random_state=random_state)
-        self._name = "IsolationForest"
+        self._name = "IF"
 
     def balance_data(self, x_train: pd.DataFrame, y_train: pd.Series = None) -> pd.DataFrame:
         """Note y_train can be None only for enhancers. 
