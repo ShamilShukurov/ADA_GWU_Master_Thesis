@@ -23,7 +23,7 @@ class Balancer(ABC):
       - y_train (pd.Series): Input Series containing the target variable.
       
       Returns:
-      - pd.DataFrame: Balanced DataFrame after applying SMOTE.
+      - pd.DataFrame: Balanced DataFrame after applying balancing algorithm.
       """
   @property
   @abstractmethod
@@ -153,7 +153,7 @@ class SMOTETomekBalancer(Balancer):
     
 
 class LOFEnhance(Balancer):
-    """Local Outlier Factor Balancer implementation of the Balancer abstract class."""
+    """Local Outlier Factor implementation of the Balancer abstract class."""
     
     def __init__(self, n_neighbors=20, contamination='auto'):
         self.lof = LocalOutlierFactor(n_neighbors=n_neighbors, contamination=contamination)
@@ -162,6 +162,7 @@ class LOFEnhance(Balancer):
     def balance_data(self, x_train: pd.DataFrame, y_train: pd.Series) -> pd.DataFrame:
         # Fit the LOF model to the data and predict the outlier status directly
         outlier_predictions = self.lof.fit_predict(x_train)
+        
         # Transform predictions to match our desired format: 1 for outliers, 0 for inliers
         is_outlier = np.where(outlier_predictions == -1, 1, 0)
         

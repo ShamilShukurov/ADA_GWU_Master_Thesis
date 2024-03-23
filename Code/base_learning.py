@@ -33,8 +33,6 @@ class BaseLearningAlgorithm(ABC):
         --save_model (bool): Flag to indicate whether to save the trained model.
     """
 
-  # def train_eval(self, x_train: pd.DataFrame, y_train: np.array, x_test: pd.DataFrame, y_test: np.array, x_val: pd.DataFrame = None, y_val: np.array = None, save_model: bool = True) -> pd.DataFrame:
-  #     """Train and evaluate the XGBoost model on both training and test datasets."""
     self.fit(x_train, y_train, x_val, y_val)
 
     predictions_test = self.predict(x_test)
@@ -90,6 +88,7 @@ class BaseLearningAlgorithm(ABC):
       plt.title(f'Receiver Operating Characteristic - {dataset_label}')
       plt.legend(loc="lower right")
       plt.show()
+  
   @property
   @abstractmethod
   def name(self) -> str:

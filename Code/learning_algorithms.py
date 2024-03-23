@@ -24,7 +24,7 @@ from utils import *
 class SVMClassifier(BaseLearningAlgorithm):
     """SVM Classifier implementation of the BaseLearningAlgorithm."""
     
-    def __init__(self, alg_name = 'SimpleSVC', kernel='rbf', C=5.0, class_weight=None, verbose=False):
+    def __init__(self, alg_name = 'SVC', kernel='rbf', C=5.0, class_weight=None, verbose=False):
         self.model = SVC(kernel=kernel, C=C, probability=True, class_weight=class_weight, verbose=verbose)
         self.alg_name = alg_name
         self.kernel = kernel
@@ -53,7 +53,7 @@ class SVMClassifier(BaseLearningAlgorithm):
 class XGBoostClassifier(BaseLearningAlgorithm):
     """XGBoost Classifier implementation of the BaseLearningAlgorithm."""
     
-    def __init__(self, alg_name='SimpleXGB', max_depth=3, learning_rate=0.1, 
+    def __init__(self, alg_name='XGB', max_depth=3, learning_rate=0.1, 
                  n_estimators=100, verbosity=0, objective='binary:logistic', 
                  booster='gbtree', class_weight=1):
         self.model = xgb.XGBClassifier(max_depth=max_depth, 
@@ -93,7 +93,7 @@ class XGBoostClassifier(BaseLearningAlgorithm):
 class LogisticRegressionClassifier(BaseLearningAlgorithm):
     """Logistic Regression implementation of the BaseLearningAlgorithm."""
     
-    def __init__(self, alg_name='SimpleLogisticRegression', 
+    def __init__(self, alg_name='LogisticRegression', 
                  penalty='l2', C=1.0, class_weight=None, solver='lbfgs', max_iter=100, verbose=0):
         self.model = LogisticRegression(penalty=penalty, C=C, class_weight=class_weight, 
                                         solver=solver, max_iter=max_iter, verbose=verbose)
