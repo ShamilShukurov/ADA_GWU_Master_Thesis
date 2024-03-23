@@ -183,7 +183,7 @@ class LOFEnhance(Balancer):
         self.lof = LocalOutlierFactor(n_neighbors=n_neighbors, contamination=contamination)
         self._name = "LocalOutlierFactor"
 
-    def balance_data(self, x_train: pd.DataFrame, y_train: pd.Series) -> pd.DataFrame:
+    def balance_data(self, x_train: pd.DataFrame, y_train: pd.Series = None) -> pd.DataFrame:
         # Fit the LOF model to the data and predict the outlier status directly
         outlier_predictions = self.lof.fit_predict(x_train)
 
@@ -199,7 +199,8 @@ class LOFEnhance(Balancer):
         enhanced_data = x_train.copy()
         enhanced_data['LOF_Score'] = normalized_scores
         enhanced_data['Is_Outlier_LOF'] = is_outlier
-        enhanced_data[y_train.name] = y_train
+        if y_train:
+          enhanced_data[y_train.name] = y_train
         return enhanced_data
 
     @property
@@ -218,7 +219,7 @@ class IsolationForestEnhance(Balancer):
         self.isoforest = IsolationForest(n_estimators=n_estimators, contamination=contamination, random_state=random_state)
         self._name = "IsolationForest"
 
-    def balance_data(self, x_train: pd.DataFrame, y_train: np.array = None) -> pd.DataFrame:
+    def balance_data(self, x_train: pd.DataFrame, y_train: pd.Series = None) -> pd.DataFrame:
 
         # Fit the Isolation Forest model to the data
         self.isoforest.fit(x_train)
@@ -236,7 +237,8 @@ class IsolationForestEnhance(Balancer):
         enhanced_data = x_train.copy()
         enhanced_data['IsoForest_Score'] = normalized_scores
         enhanced_data['Is_Outlier_IF'] = is_outlier
-        enhanced_data[y_train.name] = y_train
+        if y_train:
+          enhanced_data[y_train.name] = y_train
         
         return enhanced_data
 
