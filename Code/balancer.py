@@ -199,7 +199,7 @@ class LOFEnhance(Balancer):
         enhanced_data = x_train.copy()
         enhanced_data['LOF_Score'] = normalized_scores
         enhanced_data['Is_Outlier_LOF'] = is_outlier
-        if y_train:
+        if y_train is not None:
           enhanced_data[y_train.name] = y_train
         return enhanced_data
 
@@ -237,7 +237,7 @@ class IsolationForestEnhance(Balancer):
         enhanced_data = x_train.copy()
         enhanced_data['IsoForest_Score'] = normalized_scores
         enhanced_data['Is_Outlier_IF'] = is_outlier
-        if y_train:
+        if y_train is not None:
           enhanced_data[y_train.name] = y_train
         
         return enhanced_data
