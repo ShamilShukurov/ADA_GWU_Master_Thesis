@@ -1,3 +1,4 @@
+from numpy.core.multiarray import array as array
 import pandas as pd
 import numpy as np
 from abc import ABC, abstractmethod
@@ -203,6 +204,7 @@ class LOFEnhance(Balancer):
         enhanced_data = x_train.copy()
         enhanced_data['LOF_Score'] = normalized_scores
         enhanced_data['Is_Outlier_LOF'] = is_outlier
+        #if y_train provided add it to the end of the dataset
         if y_train is not None:
           enhanced_data[y_train.name] = y_train
         return enhanced_data
@@ -217,7 +219,7 @@ class LOFEnhance(Balancer):
         return True
     
 class IsolationForestEnhance(Balancer):
-    """Isolation Forest Balancer implementation of the Balancer abstract class."""
+    """Isolation Forest  implementation of the Balancer abstract class."""
     
     def __init__(self, n_estimators=100, contamination='auto', random_state=42):
         self.isoforest = IsolationForest(n_estimators=n_estimators, contamination=contamination, random_state=random_state)
@@ -243,11 +245,44 @@ class IsolationForestEnhance(Balancer):
         enhanced_data = x_train.copy()
         enhanced_data['IsoForest_Score'] = normalized_scores
         enhanced_data['Is_Outlier_IF'] = is_outlier
+        #if y_train provided add it to the end of the dataset
         if y_train is not None:
           enhanced_data[y_train.name] = y_train
         
         return enhanced_data
 
+    @property
+    def name(self) -> str:
+        """Returns the name of the algorithm."""
+        return self._name
+    
+    @property
+    def apply_to_test(self) -> bool:
+        return True
+    
+class LOF_IFEnhance(Balancer):
+    """Isolation Forest and Local Outlier implementation of the Balancer abstract class. 
+       They both will be applied to dataset
+    """
+    def __init__(self, n_neighbors=20, contamination='auto',
+                 n_estimators=100, random_state=42):
+        self.ife = IsolationForestEnhance(n_estimators,contamination,random_state)
+        self.lof = LOFEnhance(n_neighbors,contamination)
+        self._name = "LOF_IF"
+    
+    def balance_data(self, x_train: pd.DataFrame, y_train: pd.Series = None) -> pd.DataFrame:
+        ife_balanced = self.ife.balance_data(x_train)
+        lof_balanced = self.lof.balance_data(x_train)
+
+        lof_balanced["IsoForest_Score"] = ife_balanced["IsoForest_Score"]
+        lof_balanced["Is_Outlier_IF"] = ife_balanced["Is_Outlier_IF"]
+
+        #if y_train provided add it to the end of the dataset
+        if y_train is not None:
+          lof_balanced[y_train.name] = y_train
+
+        return lof_balanced
+    
     @property
     def name(self) -> str:
         """Returns the name of the algorithm."""

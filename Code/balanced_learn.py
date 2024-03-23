@@ -35,6 +35,7 @@ class BalancedLearn(BaseLearningAlgorithm):
         if self.balancer.apply_to_test:
             # Balance the test data similar to the training data
             balanced_test_data = self.balancer.balance_data(x_test)
+            # print(balanced_test_data.columns)
             return self.learning_algorithm.predict(balanced_test_data)
 
         return self.learning_algorithm.predict(x_test)
