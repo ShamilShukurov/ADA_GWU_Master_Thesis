@@ -37,7 +37,7 @@ def plot_roc_(roc_data, title):
     - roc_data (dict): A dictionary containing the false positive rates, true positive rates, and AUC scores for each model.
     - title (str): Title for the plot.
     """
-    plt.figure(figsize=(8, 6))
+    plt.figure(figsize=(6, 4))
     for model_name, data in roc_data.items():
         plt.plot(data['fpr'], data['tpr'], label=f'{model_name} (AUC = {data["auc"]:.2f})')
     

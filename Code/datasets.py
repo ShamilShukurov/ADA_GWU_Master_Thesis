@@ -38,8 +38,8 @@ class Experiment_Dataset:
 
 def fetch_dataset(d_name:str):
     #get filepath
-    p_train = os.path.join(TRAIN_TEST_DATA_PATH,f"{d_name}_test.xlsx")
-    p_test = os.path.join(TRAIN_TEST_DATA_PATH,f"{d_name}_train.xlsx")
+    p_test = os.path.join(TRAIN_TEST_DATA_PATH,f"{d_name}_test.xlsx")
+    p_train = os.path.join(TRAIN_TEST_DATA_PATH,f"{d_name}_train.xlsx")
     
     #get train test data
     df_train = pd.read_excel(p_train)

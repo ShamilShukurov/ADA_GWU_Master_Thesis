@@ -3,6 +3,7 @@ import pandas as pd
 from sklearn.svm import SVC
 import xgboost as xgb
 from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
 from imblearn.ensemble import EasyEnsembleClassifier
 from imblearn.ensemble import BalancedBaggingClassifier
 from imblearn.ensemble import RUSBoostClassifier
@@ -49,7 +50,32 @@ class SVMClassifier(BaseLearningAlgorithm):
         """Return the name of the algorithm."""
         return self.alg_name#f"{self.alg_name}_{self.kernel}_C{self.C}"
     
+class RandomForestClassifierWrapper(BaseLearningAlgorithm):
+    """Random Forest Classifier implementation of the BaseLearningAlgorithm."""
+    
+    def __init__(self, alg_name='RFC', n_estimators=100, class_weight='balanced', random_state=42, verbose=False):
+        self.model = RandomForestClassifier(n_estimators=n_estimators, class_weight=class_weight, random_state=random_state, verbose=verbose)
+        self.alg_name = alg_name
+        self.n_estimators = n_estimators
+        self.class_weight = class_weight
+        self.verbose = verbose
+        
+    def fit(self, x_train: pd.DataFrame, y_train: np.array, x_val: pd.DataFrame = None, y_val: np.array = None) -> None:
+        """Fit the Random Forest model to the training data."""
+        self.model.fit(x_train, y_train)
+    
+    def predict(self, x_test: pd.DataFrame) -> np.array:
+        """Predict using the fitted Random Forest model."""
+        return self.model.predict(x_test)
 
+    def predict_proba(self, x_test: pd.DataFrame) -> np.array:
+        """Predicts probabilities on an unlabeled sample, X."""
+        return self.model.predict_proba(x_test)
+    
+    @property
+    def name(self) -> str:
+        """Return the name of the algorithm."""
+        return self.alg_name
 
 class XGBoostClassifier(BaseLearningAlgorithm):
     """XGBoost Classifier implementation of the BaseLearningAlgorithm."""
