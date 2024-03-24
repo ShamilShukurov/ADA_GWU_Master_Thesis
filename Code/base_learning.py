@@ -3,6 +3,7 @@ import pandas as pd
 from abc import ABC, abstractmethod
 import matplotlib.pyplot as plt
 from sklearn.metrics import f1_score, precision_score, accuracy_score, recall_score, roc_auc_score, roc_curve, auc
+import time
 
 class BaseLearningAlgorithm(ABC):
   """Base class for a Supervised Learning Algorithm."""
@@ -33,8 +34,10 @@ class BaseLearningAlgorithm(ABC):
         --save_model (bool): Flag to indicate whether to save the trained model.
     """
     print("Traning the model...")
+    start_time = time.time()
     self.fit(x_train, y_train, x_val, y_val)
-    print("Training Done.")
+    training_duration = time.time() - start_time  # Calculate the training duration
+    print(f"Training Done. Time taken: {training_duration:.2f} seconds.")
 
     predictions_test = self.predict(x_test)
     probabilities_test = self.predict_proba(x_test)[:, 1]
@@ -67,7 +70,8 @@ class BaseLearningAlgorithm(ABC):
         'F1 Score': [f1_train, f1_test],
         'Precision': [precision_train, precision_test],
         'Recall': [recall_train, recall_test],
-        'AUC Score': [auc_score_train, auc_score_test]
+        'AUC Score': [auc_score_train, auc_score_test],
+        'Training Time (s)': [training_duration] * 2
     })
 
     if save_model:
