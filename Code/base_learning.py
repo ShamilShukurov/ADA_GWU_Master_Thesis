@@ -60,6 +60,7 @@ class BaseLearningAlgorithm(ABC):
     recall_train = recall_score(y_train, predictions_train, zero_division=0)
     auc_score_train = roc_auc_score(y_train, probabilities_train)
 
+
     if plot_roc:
       # Plot ROC curve for both test and train data
       self.plot_roc_curve(y_test, probabilities_test, 'Test')
