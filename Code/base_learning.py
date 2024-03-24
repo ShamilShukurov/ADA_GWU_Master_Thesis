@@ -68,7 +68,7 @@ class BaseLearningAlgorithm(ABC):
 
     evaluation_report = pd.DataFrame({
         'Model': [self.name, self.name],
-        'Dataset': ['Train', 'Test'],
+        'Sample': ['Train', 'Test'],
         'Accuracy': [accuracy_train, accuracy_test],
         'F1 Score': [f1_train, f1_test],
         'Precision': [precision_train, precision_test],
