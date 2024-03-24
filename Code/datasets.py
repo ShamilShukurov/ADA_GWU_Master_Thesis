@@ -51,8 +51,8 @@ def fetch_dataset(d_name:str):
     X_train = df_train.drop(columns = target_col)
     y_train = df_train[target_col]
 
-    X_test = df_train.drop(columns = target_col)
-    y_test = df_train[target_col]
+    X_test = df_test.drop(columns = target_col)
+    y_test = df_test[target_col]
     
     return Experiment_Dataset(d_name, X_train, y_train, X_test, y_test, target_col)
 
