@@ -8,6 +8,13 @@ def get_scale_weight(y:np.array)->float:
     return vc.max()/vc.min()
 
 
+def get_stats(df:pd.DataFrame, target_col:str):
+    d = pd.DataFrame({"Counts": df[target_col].value_counts(),
+                      "Percents": (df[target_col].value_counts()/len(df))*100
+                    }) 
+    d.loc['Total']= d.sum(numeric_only=True, axis=0)
+    return d.reset_index()
+
 def chi_sq_test(cross_tabs):
     """
     Prints the Chi-Squared Statistic, p-value, and degress of freedom from a Chi-Squared test.

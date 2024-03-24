@@ -29,6 +29,7 @@ class BaseLearningAlgorithm(ABC):
                  , x_test:pd.DataFrame , y_test:np.array 
                  , x_val:pd.DataFrame=None, y_val:np.array=None
                  , save_model : bool=True
+                 , plot_roc : bool = False
                 ) -> pd.DataFrame:
     """Trains the model and return model evaluation report based on train and test data.
         --save_model (bool): Flag to indicate whether to save the trained model.
@@ -59,9 +60,10 @@ class BaseLearningAlgorithm(ABC):
     recall_train = recall_score(y_train, predictions_train, zero_division=0)
     auc_score_train = roc_auc_score(y_train, probabilities_train)
 
-    # Plot ROC curve for both test and train data
-    self.plot_roc_curve(y_test, probabilities_test, 'Test')
-    self.plot_roc_curve(y_train, probabilities_train, 'Train')
+    if plot_roc:
+      # Plot ROC curve for both test and train data
+      self.plot_roc_curve(y_test, probabilities_test, 'Test')
+      self.plot_roc_curve(y_train, probabilities_train, 'Train')
 
     evaluation_report = pd.DataFrame({
         'Model': [self.name, self.name],
