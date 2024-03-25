@@ -1,4 +1,4 @@
-
+"""Contains functions for automatic training and evaluation of models on given datasets."""
 
 import pandas as pd
 import time

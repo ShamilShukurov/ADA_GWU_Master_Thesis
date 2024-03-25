@@ -1,8 +1,13 @@
+"""
+Contains wrapper class for datasets and utility function for fetching datasets for the project.
+"""
+
 import pandas as pd
 import os
 PREPARED_DATA_PATH = r"C:\Users\shami\Desktop\Master_Thesis_Data\Prepared_Datasets"
 TRAIN_TEST_DATA_PATH = r"C:\Users\shami\Desktop\Master_Thesis_Data\Train_Test_Datasets"
 
+#Dataset Dictionary used in this project.
 DATA_DICT = {
     "Adult":"income_class",
     "cc_fraud_1":"Class",
@@ -22,6 +27,7 @@ DATA_DICT = {
 }
 
 class Experiment_Dataset:
+    """Wrapper class for dataset used in experiment."""
     def __init__(self
                  ,name: str
                  ,X_train: pd.DataFrame
@@ -37,6 +43,7 @@ class Experiment_Dataset:
         self.target_col_name = target_col_name
 
 def fetch_dataset(d_name:str):
+    """Fetches given dataset from directory"""
     #get filepath
     p_test = os.path.join(TRAIN_TEST_DATA_PATH,f"{d_name}_test.xlsx")
     p_train = os.path.join(TRAIN_TEST_DATA_PATH,f"{d_name}_train.xlsx")
@@ -57,6 +64,7 @@ def fetch_dataset(d_name:str):
     return Experiment_Dataset(d_name, X_train, y_train, X_test, y_test, target_col)
 
 def fetch_all_datasets():
+    """Fetches all datasets of the project."""
     dfs = []
     for d in DATA_DICT:
         print(f"Processing {d}...")
