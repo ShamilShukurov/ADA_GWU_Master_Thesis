@@ -61,6 +61,7 @@ def make_experiment(dfs:List[Experiment_Dataset], learning_algorithms:List[BaseL
     Returns:
     - pd.DataFrame: A concatenated DataFrame containing evaluation reports for all experiments.
     """
+    start_time = time.time()
     all_reports = []  # List to store individual reports
 
     for dataset in dfs:
@@ -96,4 +97,6 @@ def make_experiment(dfs:List[Experiment_Dataset], learning_algorithms:List[BaseL
         plot_roc_(roc_data_test, title=f"ROC Curves for Test Data on {dataset.name}")
 
     # Return all reports in one DataFrame
+    training_duration = time.time() - start_time
+    print(f"Experiment Done in {training_duration} seconds")
     return pd.concat(all_reports, ignore_index=True)

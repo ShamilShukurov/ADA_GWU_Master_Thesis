@@ -50,11 +50,12 @@ class SVMClassifier(BaseLearningAlgorithm):
         """Return the name of the algorithm."""
         return self.alg_name#f"{self.alg_name}_{self.kernel}_C{self.C}"
     
-class RandomForestClassifierWrapper(BaseLearningAlgorithm):
+class RandomForest(BaseLearningAlgorithm):
     """Random Forest Classifier implementation of the BaseLearningAlgorithm."""
     
-    def __init__(self, alg_name='RFC', n_estimators=100, class_weight='balanced', random_state=42, verbose=False):
-        self.model = RandomForestClassifier(n_estimators=n_estimators, class_weight=class_weight, random_state=random_state, verbose=verbose)
+    def __init__(self, alg_name='RandomForest', n_estimators=55, class_weight=None, random_state=42, verbose=False):
+        self.model = RandomForestClassifier(n_estimators=n_estimators, class_weight=class_weight, 
+                                            max_depth=4, random_state=random_state, verbose=verbose)
         self.alg_name = alg_name
         self.n_estimators = n_estimators
         self.class_weight = class_weight
