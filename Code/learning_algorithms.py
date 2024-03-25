@@ -1,3 +1,22 @@
+"""
+Implementation of different supervised learning algorithms.
+
+
+All learning algorithms are implemented by extending base wrapper class BaseLearningAlgorithm.
+List of implemented algorithms:
+        1.SVMClassifier
+        2.RandomForest
+        3.XGBoostClassifier
+        4.LogisticRegressionClassifier
+        5.EasyEnsemble
+        6.BalancedBagging
+        7.SMOTEBagging
+        8.RAMOBoost
+        9.SMOTEBoost
+        10.RUSBoost
+        11.IsolationForest
+"""
+
 import numpy as np
 import pandas as pd
 from sklearn.svm import SVC

@@ -1,3 +1,21 @@
+"""
+Implementation of different balancing techniques.
+
+
+All balancing techniques are implemented by extending base wrapper class for balancing.
+List of implemented balancing techniques:
+      1.Random Under Sample
+      2.Random Over Sample
+      3.SMOTE
+      4.ADASYN
+      5.Tomek Links
+      6.SMOTE-TOMEK
+      7.Local Outlier Factor : Anomality scores and predictions added to enhance the data, row count is not changing.
+      8.Isolation Forest : Anomality scores and predictions added to enhance the data, row count is not changing.
+      9.LOF_IF : Combination of 7 and 8.
+"""
+
+
 from numpy.core.multiarray import array as array
 import pandas as pd
 import numpy as np
