@@ -102,15 +102,14 @@ class XGBoostClassifier(BaseLearningAlgorithm):
     
     def __init__(self, alg_name='XGB', max_depth=3, learning_rate=0.1, 
                  n_estimators=100, verbosity=0, objective='binary:logistic', 
-                 booster='gbtree', class_weight=1):
+                 booster='gbtree', class_weight=None):
         self.model = xgb.XGBClassifier(max_depth=max_depth, 
                                        learning_rate=learning_rate, 
                                        n_estimators=n_estimators, 
                                        verbosity=verbosity, 
                                        objective=objective, 
                                        booster=booster, 
-                                       use_label_encoder=False, 
-                                       scale_pos_weight=class_weight)
+                                       use_label_encoder=False)
         self.alg_name = alg_name
         self.max_depth = max_depth
         self.learning_rate = learning_rate
@@ -122,6 +121,17 @@ class XGBoostClassifier(BaseLearningAlgorithm):
 
     def fit(self, x_train: pd.DataFrame, y_train: np.array, x_val: pd.DataFrame = None, y_val: np.array = None) -> None:
         """Fit the XGBoost model to the training data."""
+        #if balanced option selected, recreate class model with balanced scale weight
+        if(self.class_weight == 'balanced'):
+            self.model = xgb.XGBClassifier(max_depth=self.max_depth, 
+                                learning_rate=self.learning_rate, 
+                                n_estimators=self.n_estimators, 
+                                verbosity=self.verbosity, 
+                                objective=self.objective, 
+                                booster=self.booster, 
+                                use_label_encoder=False,
+                                scale_pos_weight = get_scale_weight(y_train))
+            
         self.model.fit(x_train, y_train, eval_metric='logloss')
 
     def predict(self, x_test: pd.DataFrame) -> np.array:
