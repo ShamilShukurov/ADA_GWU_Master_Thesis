@@ -356,3 +356,52 @@ class IsolationForestClassifier(BaseLearningAlgorithm):
     def name(self) -> str:
         """Return the name of the algorithm."""
         return self.alg_name
+
+
+
+class SelfBoostingXGBoostClassifier(XGBoostClassifier):
+    """Implements the self-boosting approach using two XGBoost models."""
+
+    def __init__(self, alg_name='XGB', max_depth=3, learning_rate=0.1, 
+                 n_estimators=100, verbosity=0, objective='binary:logistic', 
+                 booster='gbtree'):
+
+        super().__init__(alg_name=alg_name, max_depth=max_depth, learning_rate=learning_rate, 
+                         n_estimators=n_estimators, verbosity=verbosity, objective=objective, 
+                         booster=booster, class_weight='balanced')
+                         
+        # Initialize the second XGBoost model
+        self.model_stage2 = xgb.XGBClassifier(alg_name=alg_name, max_depth=max_depth, learning_rate=learning_rate, 
+                                              n_estimators=n_estimators, verbosity=verbosity, objective=objective, 
+                                              booster=booster, class_weight=None)
+
+    def fit(self, x_train: pd.DataFrame, y_train: np.array, x_val: pd.DataFrame = None, y_val: np.array = None) -> None:
+        # First stage: Train with balanced sample weights
+        if self.class_weight == 'balanced':
+            scale_weight = get_scale_weight(y_train)
+            self.model.set_params(scale_pos_weight=scale_weight)
+        self.model.fit(x_train, y_train, eval_metric='logloss')
+        
+        # Generate probabilities from the first model
+        probabilities_train = self.model.predict_proba(x_train)[:, 1]
+        
+        # Add probabilities as a feature for the second training stage
+        x_train_with_probs = x_train.copy()
+        x_train_with_probs['probabilities'] = probabilities_train
+        
+        # Second stage: Train the second model without class weighting
+        self.model_stage2.fit(x_train_with_probs, y_train, eval_metric='logloss')
+
+    def predict(self, x_test: pd.DataFrame) -> np.array:
+        # Use the second model for prediction
+        probabilities_test = self.model.predict_proba(x_test)[:, 1]
+        x_test_with_probs = x_test.copy()
+        x_test_with_probs['probabilities'] = probabilities_test
+        return self.model_stage2.predict(x_test_with_probs)
+
+    def predict_proba(self, x_test: pd.DataFrame) -> np.array:
+        # Predict probabilities using the second model
+        probabilities_test = self.model.predict_proba(x_test)[:, 1]
+        x_test_with_probs = x_test.copy()
+        x_test_with_probs['probabilities'] = probabilities_test
+        return self.model_stage2.predict_proba(x_test_with_probs)
