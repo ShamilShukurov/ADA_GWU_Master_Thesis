@@ -362,14 +362,14 @@ class IsolationForestClassifier(BaseLearningAlgorithm):
 class SelfBoostingXGBoostClassifier(XGBoostClassifier):
     """Implements the self-boosting approach using two XGBoost models."""
 
-    def __init__(self, alg_name='XGB', max_depth=3, learning_rate=0.1, 
+    def __init__(self, alg_name='SelfBoostingXGB', max_depth=3, learning_rate=0.1, 
                  n_estimators=100, verbosity=0, objective='binary:logistic', 
                  booster='gbtree'):
 
         super().__init__(alg_name=alg_name, max_depth=max_depth, learning_rate=learning_rate, 
-                         n_estimators=n_estimators, verbosity=verbosity, objective=objective, 
+                         n_estimators = n_estimators, verbosity=verbosity, objective=objective, 
                          booster=booster, class_weight='balanced')
-                         
+
         # Initialize the second XGBoost model
         self.model_stage2 = xgb.XGBClassifier(alg_name=alg_name, max_depth=max_depth, learning_rate=learning_rate, 
                                               n_estimators=n_estimators, verbosity=verbosity, objective=objective, 
@@ -377,31 +377,94 @@ class SelfBoostingXGBoostClassifier(XGBoostClassifier):
 
     def fit(self, x_train: pd.DataFrame, y_train: np.array, x_val: pd.DataFrame = None, y_val: np.array = None) -> None:
         # First stage: Train with balanced sample weights
-        if self.class_weight == 'balanced':
-            scale_weight = get_scale_weight(y_train)
-            self.model.set_params(scale_pos_weight=scale_weight)
-        self.model.fit(x_train, y_train, eval_metric='logloss')
+        self.model.fit(x_train, y_train)
         
         # Generate probabilities from the first model
-        probabilities_train = self.model.predict_proba(x_train)[:, 1]
+        probabilities_train = self.model.predict(x_train)#[:, 1]
         
         # Add probabilities as a feature for the second training stage
         x_train_with_probs = x_train.copy()
         x_train_with_probs['probabilities'] = probabilities_train
         
         # Second stage: Train the second model without class weighting
-        self.model_stage2.fit(x_train_with_probs, y_train, eval_metric='logloss')
+        self.model_stage2.fit(x_train_with_probs, y_train)
 
     def predict(self, x_test: pd.DataFrame) -> np.array:
         # Use the second model for prediction
-        probabilities_test = self.model.predict_proba(x_test)[:, 1]
+        probabilities_test = self.model.predict(x_test)#[:, 1]
         x_test_with_probs = x_test.copy()
         x_test_with_probs['probabilities'] = probabilities_test
         return self.model_stage2.predict(x_test_with_probs)
 
     def predict_proba(self, x_test: pd.DataFrame) -> np.array:
         # Predict probabilities using the second model
-        probabilities_test = self.model.predict_proba(x_test)[:, 1]
+        probabilities_test = self.model.predict(x_test)#[:, 1]
         x_test_with_probs = x_test.copy()
         x_test_with_probs['probabilities'] = probabilities_test
         return self.model_stage2.predict_proba(x_test_with_probs)
+
+class PSMClassifier(BaseLearningAlgorithm):
+    """
+    Parallel Stacked Models Classifier that uses predictions from multiple imbalance-handling models
+    as features for a final main model.
+    """
+    def __init__(self, sub_models: list, main_model: BaseLearningAlgorithm):
+        """
+        Initializes the PSMClassifier with a list of sub-models and a main model.
+        
+        :param sub_models: List of instances of BaseLearningAlgorithm handling imbalance.
+        :param main_model: The main model instance of BaseLearningAlgorithm to make the final prediction.
+        """
+        self.sub_models = sub_models
+        self.main_model = main_model
+
+    def fit(self, x_train: pd.DataFrame, y_train: np.array, x_val: pd.DataFrame = None, y_val: np.array = None) -> None:
+        # First, fit all sub-models
+        sub_model_preds = []
+        for model in self.sub_models:
+            print(f"Fitting the model {model.name}...")
+            model.fit(x_train, y_train, x_val, y_val)
+            # Collect predictions as additional features
+            preds = model.predict(x_train)#[:, 1]  # assuming binary classification
+            sub_model_preds.append(preds)
+        
+        # Create a new training set for the main model that includes predictions from sub-models
+        x_train_with_preds = x_train.copy()
+        for i, preds in enumerate(sub_model_preds):
+            x_train_with_preds[f'P_{self.sub_models[i].name}'] = preds
+        
+        # Fit the main model on the new training set
+        self.main_model.fit(x_train_with_preds, y_train, x_val, y_val)
+
+    def predict(self, x_test: pd.DataFrame) -> np.array:
+        # First, get predictions from all sub-models
+        sub_model_preds = []
+        for model in self.sub_models:
+            preds = model.predict(x_test)#[:, 1]  # assuming binary classification
+            sub_model_preds.append(preds)
+        
+        # Create a new test set that includes these predictions
+        x_test_with_preds = x_test.copy()
+        for i, preds in enumerate(sub_model_preds):
+            x_test_with_preds[f'P_{self.sub_models[i].name}'] = preds
+        
+        # Use the main model to make final predictions on the enhanced test set
+        return self.main_model.predict(x_test_with_preds)
+
+    def predict_proba(self, x_test: pd.DataFrame) -> np.array:
+        # Similar to predict, but return probabilities
+        sub_model_preds = []
+        for model in self.sub_models:
+            preds = model.predict(x_test)#[:, 1]  # assuming binary classification
+            sub_model_preds.append(preds)
+        
+        x_test_with_preds = x_test.copy()
+        for i, preds in enumerate(sub_model_preds):
+            x_test_with_preds[f'P_{self.sub_models[i].name}'] = preds
+        
+        return self.main_model.predict_proba(x_test_with_preds)
+    
+    @property
+    def name(self) -> str:
+        """Return the name of the algorithm."""
+        return "PSM"
