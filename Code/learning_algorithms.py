@@ -468,3 +468,54 @@ class PSMClassifier(BaseLearningAlgorithm):
     def name(self) -> str:
         """Return the name of the algorithm."""
         return "PSM"
+
+class SSMClassifier(BaseLearningAlgorithm):
+    """
+    Sequentially Stacked Models Classifier that sequentially trains models,
+    each using the original features augmented by the predictions of the previously trained models.
+    """
+    def __init__(self, models: list):
+        """
+        Initializes the SSMClassifier with a list of models to be trained sequentially.
+        
+        :param models: List of instances of BaseLearningAlgorithm.
+        """
+        self.models = models
+
+    def fit(self, x_train: pd.DataFrame, y_train: np.array, x_val: pd.DataFrame = None, y_val: np.array = None) -> None:
+        # Current feature set, starting with the original features
+        current_x_train = x_train.copy()
+
+        for model in self.models:
+            print(f"Fitting the model {model.name}...")
+            # Train the current model on the current feature set
+            model.fit(current_x_train, y_train, x_val, y_val)
+            # Predict probabilities and add as a new feature for the next model
+            preds = model.predict(current_x_train)#[:, 1]  # assuming binary classification
+            current_x_train[f'{model.name}_preds'] = preds
+
+    def predict(self, x_test: pd.DataFrame) -> np.array:
+        # Start with original test set
+        current_x_test = x_test.copy()
+        
+        # Sequentially predict and augment the feature set
+        for model in self.models:
+            preds = model.predict(current_x_test)#[:, 1]
+            current_x_test[f'{model.name}_preds'] = preds
+
+        # Final prediction using the last model
+        return self.models[-1].predict(current_x_test)
+
+    def predict_proba(self, x_test: pd.DataFrame) -> np.array:
+        # Similar to predict, but return probabilities using the last model
+        current_x_test = x_test.copy()
+        
+        for model in self.models:
+            preds = model.predict(current_x_test)#[:, 1]
+            current_x_test[f'{model.name}_preds'] = preds
+
+        return self.models[-1].predict_proba(current_x_test)
+    @property
+    def name(self) -> str:
+        """Return the name of the algorithm."""
+        return "SSM"
