@@ -519,3 +519,121 @@ class SSMClassifier(BaseLearningAlgorithm):
     def name(self) -> str:
         """Return the name of the algorithm."""
         return "SSM"
+
+
+class DCBoost(BaseLearningAlgorithm):
+    """
+    Two-stage XGBoost classifier that first maximizes recall by giving high weight to the minority class,
+    and then refines predictions by filtering and retraining on predicted positives.
+    """
+    def __init__(self, min_weight=95, max_depth=3, learning_rate=0.1, 
+                 n_estimators=100, verbosity=0, objective='binary:logistic', 
+                 booster='gbtree', second_model_balanced = True):
+        """
+        Initializes the TwoStageXGBoost classifier with custom weights and additional XGBoost parameters.
+        
+        :param high_weight: The weight to assign to the minority class in the first model to maximize recall.
+        """
+        self.min_weight = min_weight
+        self.max_depth = max_depth
+        self.learning_rate = learning_rate
+        self.n_estimators = n_estimators
+        self.verbosity = verbosity
+        self.objective = objective
+        self.booster = booster
+        self.second_model_balanced = second_model_balanced
+        self.model_stage1 = xgb.XGBClassifier(max_depth=max_depth, 
+                                       learning_rate=learning_rate, 
+                                       n_estimators=n_estimators, 
+                                       verbosity=verbosity, 
+                                       objective=objective, 
+                                       booster=booster, 
+                                       use_label_encoder=False)
+
+        self.model_stage2 = xgb.XGBClassifier(max_depth=max_depth, 
+                                       learning_rate=learning_rate, 
+                                       n_estimators=n_estimators, 
+                                       verbosity=verbosity, 
+                                       objective=objective, 
+                                       booster=booster, 
+                                       use_label_encoder=False)
+
+
+
+
+    def fit(self, x_train: pd.DataFrame, y_train: np.array, x_val: pd.DataFrame = None, y_val: np.array = None) -> None:
+
+        self.model_stage1 = xgb.XGBClassifier(max_depth=self.max_depth, 
+                                learning_rate=self.learning_rate, 
+                                n_estimators=self.n_estimators, 
+                                verbosity=self.verbosity, 
+                                objective=self.objective, 
+                                booster=self.booster, 
+                                use_label_encoder=False,
+                                scale_pos_weight = max(get_scale_weight(y_train),self.min_weight))
+
+        # Train the first model on all data with a high weight for the minority
+        self.model_stage1.fit(x_train, y_train, eval_metric='logloss')
+
+        # Predict on training set and filter instances where prediction is 1
+        train_preds = self.model_stage1.predict(x_train)
+        x_train_filtered = x_train[train_preds == 1]
+        y_train_filtered = y_train[train_preds == 1]
+
+        if self.second_model_balanced:
+            one_count = len(y_train_filtered[y_train_filtered==1])
+            zero_count = len(y_train_filtered[y_train_filtered==0])
+            w = zero_count/one_count
+            self.model_stage2 = xgb.XGBClassifier(max_depth=self.max_depth, 
+                                    learning_rate=self.learning_rate, 
+                                    n_estimators=self.n_estimators, 
+                                    verbosity=self.verbosity, 
+                                    objective=self.objective, 
+                                    booster=self.booster, 
+                                    use_label_encoder=False,
+                                    scale_pos_weight = w)
+
+        print(y_train_filtered.value_counts())
+        print("============================")
+        # Train the second model on the filtered dataset
+        if len(y_train_filtered) > 0:  # Check if there are any samples to train on
+            self.model_stage2.fit(x_train_filtered, y_train_filtered, eval_metric='logloss')
+
+    def predict(self, x_test: pd.DataFrame) -> np.array:
+        # First stage to filter instances
+        test_preds = self.model_stage1.predict(x_test)
+        x_test_filtered = x_test[test_preds == 1]
+
+        # Initialize with zeros for all instances
+        final_predictions = np.zeros(x_test.shape[0], dtype=int)
+
+        # Predict with the second model on filtered instances
+        if len(x_test_filtered) > 0:  # Check if there are any samples to predict
+            filtered_predictions = self.model_stage2.predict(x_test_filtered)
+            final_predictions[test_preds == 1] = filtered_predictions
+
+        return final_predictions
+
+
+    def predict_proba(self, x_test: pd.DataFrame) -> np.array:
+        # First model to predict probabilities
+        proba_first_model = self.model_stage1.predict_proba(x_test)
+
+        # Filter instances based on predictions of the first model
+        predicted_ones = self.model_stage1.predict(x_test) == 1
+        x_test_filtered = x_test[predicted_ones]
+
+        # Initialize with first model probabilities for all instances
+        final_probabilities = proba_first_model
+
+        # Predict probabilities for filtered instances using the second model
+        if len(x_test_filtered) > 0:  # Check if there are any samples to predict
+            filtered_probabilities = self.model_stage2.predict_proba(x_test_filtered)
+            final_probabilities[predicted_ones, :] = filtered_probabilities
+
+        return final_probabilities
+
+    @property
+    def name(self) -> str:
+        """Return the name of the algorithm."""
+        return "DCBoost"
