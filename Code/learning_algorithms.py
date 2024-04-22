@@ -21,6 +21,7 @@ import numpy as np
 import pandas as pd
 from sklearn.svm import SVC
 import xgboost as xgb
+import lightgbm as lgb
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from imblearn.ensemble import EasyEnsembleClassifier
@@ -177,6 +178,33 @@ class LogisticRegressionClassifier(BaseLearningAlgorithm):
     def name(self) -> str:
         """Return the name of the algorithm."""
         return self.alg_name#f"{self.alg_name}_{self.penalty}_C{self.C}"
+
+
+
+class LGBMClf_test(BaseLearningAlgorithm):
+    """Logistic Regression implementation of the BaseLearningAlgorithm."""
+    
+    def __init__(self, alg_name='LGBM'):
+        self.model = lgb.LGBMClassifier()
+        self.alg_name = alg_name
+
+    def fit(self, x_train: pd.DataFrame, y_train: np.array, x_val: pd.DataFrame = None, y_val: np.array = None) -> None:
+        """Fit the Logistic Regression model to the training data."""
+        print(f"len:{len(y_train)} sum:{y_train.sum()}")
+        self.model.fit(x_train, y_train)
+
+    def predict(self, x_test: pd.DataFrame) -> np.array:
+        """Predict using the fitted Logistic Regression model."""
+        return self.model.predict(x_test)
+
+    def predict_proba(self, x_test: pd.DataFrame) -> np.array:
+        return self.model.predict_proba(x_test)
+
+    @property
+    def name(self) -> str:
+        """Return the name of the algorithm."""
+        return self.alg_name#f"{self.alg_name}_{self.penalty}_C{self.C}"
+
 
 
 class EasyEnsemble(BaseLearningAlgorithm):
