@@ -386,6 +386,78 @@ class IsolationForestClassifier(BaseLearningAlgorithm):
         return self.alg_name
 
 
+class ShaDow(BaseLearningAlgorithm):
+    def __init__(self, minority_threshold, tree_clf, main_clf):
+        self.minority_threshold = minority_threshold  # Threshold to filter majority class
+        self.tree_clf = tree_clf                      # Shallow decision tree classifier
+        self.main_clf = main_clf                      # Main classifier
+    
+    def fit(self, X_train: pd.DataFrame, y_train: np.array, x_val: pd.DataFrame = None, y_val: np.array = None):
+        # Fit the shallow tree model
+        self.tree_clf.fit(X_train, y_train)
+        
+        # Get the probabilities of the majority class from the shallow tree
+        probs = self.tree_clf.predict_proba(X_train)[:, 0]  # Assuming class 1 is the minority class
+        
+        # Filter rows where probability of majority class is >= minority_threshold
+        filter_mask = probs < self.minority_threshold
+        X_filtered = X_train[filter_mask]
+        y_filtered = y_train[filter_mask]
+        print(f"Shape of the input data {X_train.shape}")
+        print(y_train.sum()/len(y_train))
+        print(f"Shape of filtered data {X_filtered.shape}")
+        print(y_filtered.sum()/len(y_filtered))
+
+        # Fit the main classifier on the filtered data
+        self.main_clf.fit(X_filtered, y_filtered)
+    
+    def predict_proba(self, X_test):
+        # Predict probabilities with the shallow tree
+        tree_probs = self.tree_clf.predict_proba(X_test)
+        
+        # Initialize an array to store the final probabilities
+        final_probs = np.zeros_like(tree_probs)
+        
+        # For cases with a high probability of majority class, use tree probabilities
+        high_prob_mask = tree_probs[:, 1] >= self.minority_threshold
+        final_probs[high_prob_mask] = tree_probs[high_prob_mask]
+        
+        # For other cases, use probabilities from the main classifier
+        low_prob_mask = ~high_prob_mask
+        if np.any(low_prob_mask):
+            final_probs[low_prob_mask] = self.main_clf.predict_proba(X_test[low_prob_mask])
+        
+        return final_probs
+
+    def predict(self, X_test):
+        # Predict class labels using the shallow tree
+        tree_predictions = self.tree_clf.predict(X_test)
+        
+        # Identify index of the majority class
+        # majority_class_index = np.argmin(self.tree_clf.classes_)
+        
+        # Get probabilities from the shallow tree for the majority class
+        tree_probs = self.tree_clf.predict_proba(X_test)[:, 0]
+        
+        # Initialize an array to store the final predictions
+        final_predictions = np.zeros_like(tree_predictions)
+        
+        # For cases with a high probability of majority class, use tree predictions
+        high_prob_mask = tree_probs >= self.minority_threshold
+        final_predictions[high_prob_mask] = tree_predictions[high_prob_mask]
+        
+        # For other cases, use predictions from the main classifier
+        low_prob_mask = ~high_prob_mask
+        if np.any(low_prob_mask):
+            final_predictions[low_prob_mask] = self.main_clf.predict(X_test[low_prob_mask])
+        
+        return final_predictions
+    @property
+    def name(self) -> str:
+        """Return the name of the algorithm."""
+        return "ShaDow"
+
+
 
 class SelfBoostingXGBoostClassifier(XGBoostClassifier):
     """Implements the self-boosting approach using two XGBoost models."""
